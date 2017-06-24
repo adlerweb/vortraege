@@ -1,0 +1,211 @@
+%%
+%% This is file `example_DarkConsole.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% examples_kmbeamer.dtx  (with options: `DarkConsole')
+%% Copyright (c) 2011-2013 Kazuki Maeda <kmaeda@users.sourceforge.jp>
+%% 
+%% Distributable under the MIT License:
+%% http://www.opensource.org/licenses/mit-license.php
+%% 
+
+%%% もし pdfTeX や LuaTeX を使うなら dvipdfmx オプションを外す．
+% \documentclass[dvipdfmx]{beamer}
+
+% Modified by LianTze Lim to work with fontspec/xelatex
+\documentclass{beamer}
+\usepackage{mathspec}
+\usepackage{xeCJK}
+%%\setCJKmainfont{IPAPMincho}
+%%\setCJKsansfont{IPAGothic}
+%%\setCJKmonofont{IPAGothic}
+
+% You can set fonts for Latin script here
+\setmainfont{FreeSerif}
+\setsansfont{FreeSans}
+\setmonofont{Latin Modern Mono}
+
+\usetheme{DarkConsole}
+
+%%% もし pTeX + dvipdfmx を使うならば以下のどちらかを環境に合わせてコメントアウト．
+%% \AtBeginDvi{\special{pdf:tounicode EUC-UCS2}} % EUC の場合
+%% \AtBeginDvi{\special{pdf:tounicode 90ms-RKSJ-UCS2}} % SJIS の場合
+
+%%% もし LuaTeX で日本語を出力するなら以下をコメントアウト．
+%% \usefonttheme{luatexja}
+%% \hypersetup{unicode}
+
+%%% 日本語を使うなら以下を入れると定理環境中のフォントが立体になる．
+%%% 欧文なら不要．
+%%% LLT: Comment out this line if your presentation is in English or other European languages
+\setbeamertemplate{theorems}[normal font]
+
+\title{\texttt{BACKUPS UNTER LINUX}}
+\subtitle{...denn Murphy kommt bestimmt...}
+\author{Florian Knodt / adlerweb}
+\institute{LUG Mayen-Koblenz}
+
+\begin{document}
+
+\begin{frame}
+  \maketitle
+\end{frame}
+
+\section{Was hab ich vor?}
+\begin{frame}{Anforderungen}
+	\begin{enumerate}[*]\pause
+    	\item Mehrere Quellsysteme\pause
+    	\item Ein Zielsystem\pause
+    	\item Teilweise sehr langsames/instabiles/unsicheres Netzwerk dazwischen\pause
+    	\item Viele Duplikate\pause
+    	\item Schneller Zugriff auf einzelne Dateien in der Sicherung\pause
+    	\item Revisionen der letzten x Tage beibehalten
+  \end{enumerate}
+\end{frame}
+
+\section{Wo komme ich her?}
+\begin{frame}{rdiff-backup\footnote{\texttt{http://www.nongnu.org/rdiff-backup/}}}
+	\begin{enumerate}[+]\pause
+    	\item Rdiff/rsync: Überträgt und speichert nur Änderungen\pause
+    	\item Läuft über SSH\pause
+    	\item 1:1-Kopie direkt am Backupziel zugreifbar\pause
+    	\item Ältere Revisionen von Dateien über Befehl abrufbar\pause
+  	\end{enumerate}
+	\begin{enumerate}[-]
+    	\item Python 2\pause
+    	\item Letztes update 2009\pause
+    	\item Keine Kompression oder Deduplizierung
+  	\end{enumerate}
+\end{frame}
+
+\section{Was nun?}
+
+\begin{frame}{BitTorrent Sync\footnote{\texttt{https://www.getsync.com/ (Closed source)}}, Owncloud\footnote{\texttt{https://owncloud.org/}}, Sparkleshare\footnote{\texttt{http://sparkleshare.org/}}}\pause
+	Desktop-Clients zur Synchronisation mit Server oder anderen Clients\pause
+	\begin{enumerate}[-]
+    	\item Eher für Desktopbetrieb und reine Replikation\pause
+    	\item Probleme mit großen Datenmengen\pause
+    	\item Augenmerk auf Daten, weniger die Metadaten (ACL, Attribute, etc)
+  	\end{enumerate}
+\end{frame}
+
+\begin{frame}{Unison\footnote{\texttt{http://www.cis.upenn.edu/~bcpierce/unison/}}}\pause
+Open source user-level file-synchronization tool für OSX, Unix, und Windows mit Zweiwegereplikation und inkrementeller Übertragung.\pause
+	\begin{enumerate}[-]
+    	\item Revisionsverwaltung nur schwer aufräumbar\pause
+    	\item OCalm?!\pause
+    	\item Aus OSX-Ecke? -> Probleme mit Metadaten
+  	\end{enumerate}
+\end{frame}
+
+\begin{frame}{Obnam\footnote{\texttt{http://obnam.org/}}}\pause
+
+	\begin{enumerate}[+]
+    	\item Komprimiert (Deflate\footnote{\texttt{aka ZIP}})\pause
+    	\item Dedupliziert\pause
+    	\item Verschlüsselt (GnuPG)\pause
+    	\item SFTP\pause
+  	\end{enumerate}
+    \begin{enumerate}[o]
+    	\item Wird aktiv entwickelt\footnote{\texttt{sort of...}}\pause
+  	\end{enumerate}\begin{enumerate}[-]
+    	\item Python 2\footnote{\texttt{mal wieder..}}\pause
+        \item Bei mir recht langsam via SFTP\pause
+        \item Hier teilweise Fehler nach Netzwerkabbrüchen während Backups
+  	\end{enumerate}
+\end{frame}
+
+\section{BORG}
+
+\begin{frame}{Was ist BORG\footnote{\texttt{http://borgbackup.readthedocs.org/en/stable/}}}
+  Ebenfalls eine Software speziell für Datensicherungen. Schlanke Systemvoraussetzungen, professionelle Funktionen und aktive Weiterentwicklung.\pause
+  \begin{enumerate}[+]
+  	\item Interne Revisionsverwaltung um auf ältere Datenstände zugreifen zu können\pause
+    \item Ziel kann mittels FUSE gemountet werden um direkt auf die gesicherten Dateien zuzugreifen\pause
+    \item Kann nicht nur Ordner/Dateien sondern auch Partitionen oder auch ganze Laufwerke sichern\pause
+    \item Sicherungsziel lokal, entferntes System mit BORG (via SSH) oder auch via SSHFS/CIFS/NFS/…\pause
+    \item Sicherungsziel kann für mehrere Quellen verwendet werden
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Geschichte}
+  \begin{enumerate}[*]
+    \item 2015 von "Attic Backup" (2010) geforked\pause
+    \item Entwicklung von Attic war den Contributern zu zäh\pause
+    \item Diverse Bugs behoben und Funktionen nachgerüstet\pause
+    \item Nicht mehr zu Attic kompatibel
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Aufbau \& Code}
+  \begin{enumerate}[*]
+    \item >90\% Python\pause3\pause
+    \item Performancekritische Teile in C/Cython\pause
+    \item Unterstützt POSIX-xattr und ACLs\pause
+    \item BSD-Lizenz\pause
+    \item Continous Integration, Unit Tests
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Sicherheit}
+  \begin{enumerate}[*]
+    \item \textbf{Alle Daten und Metadaten werden signiert} - versehentliche und absichtliche Veränderung kann erkannt werden\pause
+    \item \textbf{Daten und Metadaten werden verschlüsselt}\pause
+    \begin{enumerate}[>]
+    	\item AES256-basierend\pause
+        \item OpenSSL-Bibliothek\pause
+        \item Unterstützung für CPU-Beschleunigung (AES-NI, PCLMULQDQ)
+	\end{enumerate}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Kompression}
+  \begin{enumerate}[*]
+    \item Viele Methoden\pause
+    \begin{enumerate}[>]
+    	\item \textbf{zlib\footnote{\texttt{aka gzip}}}
+        Gute Kompression bei akzeptabler CPU-Last\pause
+        \item \textbf{lzma}
+        Sehr hohe Kompression bei hoher CPU-Last\pause
+        \item \textbf{lz4, lz4hc}
+        Speziell für Echtzeitbetrieb, brauchbare Kompression\pause
+	\end{enumerate}
+    \item blosc-Library
+    \begin{enumerate}[>]
+		\item Hochoptimiert, Hyperthreading, SIMD(AVX2, SSE2)\pause
+        \item "faster than a memcpy()"
+	\end{enumerate}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Deduplizierung}
+  \begin{enumerate}[*]
+    \item rolling hash ("buzhash")\pause
+    \item Es wird auf Blockebene Dedupliziert -> Auch Dateiteile können erfasst werden\pause
+	\begin{enumerate}[>]
+    	\item Textdateien mit wiederkehrenden Inhalten wie Kopfzeilen oder Textblöcken\pause
+		\item Betriebssystem in VM-Images\pause
+	\end{enumerate}
+    \item Erfasst auch verschobene/umbenannte Dateien\pause
+    \item Auf Repository-Ebene, also auch von mehreren Rechnern o.Ä. nutzbar
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Demo...}
+\end{frame}
+
+\begin{frame}{Erste Erfahrungen und Ausblick}
+  \begin{enumerate}[*]
+    \item 4 VMs, 180GB Daten, 10 Revisionen\pause -> 77GB\pause
+    \item ~15TB VM-Repo\pause
+    \item Bisher keine Abstürze, bei Abbrüchen keine Fehler\pause
+    \item Webinterface (BorgWeb)
+  \end{enumerate}
+\end{frame}
+
+\end{document}
+\endinput
+%%
+%% End of file `example_DarkConsole.tex'.
